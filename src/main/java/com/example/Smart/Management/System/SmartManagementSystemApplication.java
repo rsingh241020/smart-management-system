@@ -11,5 +11,4 @@ public class SmartManagementSystemApplication {
         SpringApplication.run(SmartManagementSystemApplication.class, args);
         System.out.println("SmartManagementSystemApplication Started");
 	}
-
 }
