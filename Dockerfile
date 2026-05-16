@@ -5,8 +5,8 @@ WORKDIR /app
 COPY . .
 
 RUN chmod +x mvnw
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests = true
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/smart-management-system-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/Smart-Management-System-0.0.1-SNAPSHOT.jar"]
