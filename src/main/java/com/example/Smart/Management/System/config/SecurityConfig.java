@@ -1,6 +1,7 @@
 package com.example.Smart.Management.System.config;
 
 import com.example.Smart.Management.System.security.JwtFilter;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,7 +32,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(Customizer.withDefaults()) // ✅ IMPORTANT
+                .cors(Customizer.withDefaults())
+
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
@@ -39,36 +41,48 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
 
-    // ✅ CORS CONFIGURATION
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
+        configuration.setAllowedOriginPatterns(
+                List.of("*")
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
                 List.of("*")
         );
 
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }
