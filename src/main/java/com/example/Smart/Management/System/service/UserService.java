@@ -12,37 +12,99 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+
     private final BCryptPasswordEncoder passwordEncoder;
+
     private final JwtUtil jwtUtil;
 
-    public UserService(UserRepository userRepository,
-                       BCryptPasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
+    public UserService(
+            UserRepository userRepository,
+            BCryptPasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil
+    ) {
+
         this.userRepository = userRepository;
+
         this.passwordEncoder = passwordEncoder;
+
         this.jwtUtil = jwtUtil;
     }
 
+    // =====================================
+    // REGISTER
+    // =====================================
+
     public User register(User user) {
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(
+                passwordEncoder.encode(
+                        user.getPassword()
+                )
+        );
 
-        if (user.getEmail().equalsIgnoreCase("rohitadmin@gmail.com")) {
+        // ✅ ADMIN CHECK
+
+        if (
+                user.getEmail()
+                        .equalsIgnoreCase(
+                                "rohitadmin@gmail.com"
+                        )
+        ) {
+
             user.setRole(Role.ADMIN);
+
         } else {
+
             user.setRole(Role.MEMBER);
         }
 
         return userRepository.save(user);
     }
 
-    public String login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    // =====================================
+    // LOGIN
+    // =====================================
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+    public String login(
+            LoginRequest request
+    ) {
+
+        User user =
+                userRepository.findByEmail(
+                                request.getEmail()
+                        )
+
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+
+        // ✅ PASSWORD CHECK
+
+        if (
+                !passwordEncoder.matches(
+                        request.getPassword(),
+                        user.getPassword()
+                )
+        ) {
+
+            throw new RuntimeException(
+                    "Invalid password"
+            );
         }
-        return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+
+        // ✅ GENERATE JWT
+
+        return jwtUtil.generateToken(
+
+                user.getEmail(),
+
+                user.getRole().name(),
+
+                // ✅ NAME
+                user.getName()
+        );
     }
 }

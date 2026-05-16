@@ -13,60 +13,153 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+
     private final UserRepository userRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskService(
+            TaskRepository taskRepository,
+            UserRepository userRepository
+    ) {
+
         this.taskRepository = taskRepository;
+
         this.userRepository = userRepository;
     }
 
-    // 🔴 ADMIN → Create task (with user validation)
+    // =====================================
+    // CREATE TASK
+    // =====================================
+
     public Task create(Task task) {
 
-        // ✅ Check assigned user exists
-        userRepository.findByEmail(task.getAssignedTo())
-                .orElseThrow(() -> new RuntimeException("User not found, cannot assign task"));
+        System.out.println(
+                "Assigned To = "
+                        + task.getAssignedTo()
+        );
 
-        task.setStatus(TaskStatus.TODO);
+        // ✅ CHECK USER EXISTS
 
-        return taskRepository.save(task);
-    }
+        userRepository.findByEmail(
+                        task.getAssignedTo()
+                )
+                .orElseThrow(() ->
 
-    // 🔴 ADMIN → Get all tasks
-    public List<Task> getAll() {
-        return taskRepository.findAll();
-    }
+                        new RuntimeException(
+                                "User not found with email: "
+                                        + task.getAssignedTo()
+                        )
+                );
 
-    // 🟢 ADMIN + MEMBER → Update status
-    public Task updateStatus(Long id, String status, String email) {
+        // ✅ DEFAULT STATUS
 
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+        if (task.getStatus() == null) {
 
-        // 🔥 Only allow user to update own task
-        if (task.getAssignedTo() != null && !task.getAssignedTo().equals(email)) {
-            throw new RuntimeException("You can only update your own tasks");
+            task.setStatus(
+                    TaskStatus.TODO
+            );
         }
 
-        task.setStatus(TaskStatus.valueOf(status));
+        // ✅ DEBUG
+
+        System.out.println(task);
+
         return taskRepository.save(task);
     }
 
-    // 🟢 USER → only own tasks
-    public List<Task> getByUser(String email) {
-        return taskRepository.findAll()
-                .stream()
-                .filter(t -> t.getAssignedTo() != null && t.getAssignedTo().equals(email))
-                .toList();
+    // =====================================
+    // GET ALL TASKS
+    // =====================================
+
+    public List<Task> getAll() {
+
+        // ✅ LOAD PROJECT ALSO
+
+        return taskRepository.findAllWithProject();
     }
 
-    // ⏰ Overdue tasks
+    // =====================================
+    // UPDATE STATUS
+    // =====================================
+
+    public Task updateStatus(
+            Long id,
+            String status,
+            String email
+    ) {
+
+        Task task =
+                taskRepository.findById(id)
+
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "Task not found"
+                                )
+                        );
+
+        // ✅ ONLY OWN TASK UPDATE
+
+        if (
+                !task.getAssignedTo()
+                        .equals(email)
+        ) {
+
+            throw new RuntimeException(
+                    "You can update only your own task"
+            );
+        }
+
+        // ✅ UPDATE STATUS
+
+        task.setStatus(
+
+                TaskStatus.valueOf(
+                        status.toUpperCase()
+                )
+        );
+
+        return taskRepository.save(task);
+    }
+
+    // =====================================
+    // MY TASKS
+    // =====================================
+
+    public List<Task> getByUser(
+            String email
+    ) {
+
+        return taskRepository
+                .findByAssignedTo(email);
+    }
+
+    // =====================================
+    // OVERDUE TASKS
+    // =====================================
+
     public List<Task> getOverdue() {
+
         return taskRepository.findAll()
+
                 .stream()
-                .filter(t -> t.getDueDate() != null &&
-                        t.getDueDate().isBefore(LocalDate.now()) &&
-                        t.getStatus() != TaskStatus.DONE)
+
+                .filter(task ->
+
+                        task.getDueDate() != null
+
+                                &&
+
+                                task.getDueDate()
+                                        .isBefore(
+                                                LocalDate.now()
+                                        )
+
+                                &&
+
+                                task.getStatus()
+                                        != TaskStatus.DONE
+                )
+
                 .toList();
     }
 }

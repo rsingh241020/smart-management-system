@@ -10,27 +10,64 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String SECRET = "mysecretkeymysecretkeymysecretkey123";
+    private final String SECRET =
+            "mysecretkeymysecretkeymysecretkey123";
 
     public Key getSignKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+
+        return Keys.hmacShaKeyFor(
+                SECRET.getBytes()
+        );
     }
 
-    public String generateToken(String email, String role) {
+    // ✅ GENERATE TOKEN
+    public String generateToken(
+            String email,
+            String role,
+            String name
+    ) {
+
         return Jwts.builder()
+
                 .setSubject(email)
+
                 .claim("role", role)
+
+                // ✅ ADD NAME
+                .claim("name", name)
+
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+
+                .setExpiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + 1000 * 60 * 60
+                        )
+                )
+
+                .signWith(
+                        getSignKey(),
+                        SignatureAlgorithm.HS256
+                )
+
                 .compact();
     }
 
-    public Claims extractClaims(String token) {
+    // ✅ EXTRACT CLAIMS
+    public Claims extractClaims(
+            String token
+    ) {
+
         return Jwts.parserBuilder()
-                .setSigningKey(getSignKey())
+
+                .setSigningKey(
+                        getSignKey()
+                )
+
                 .build()
+
                 .parseClaimsJws(token)
+
                 .getBody();
     }
 }

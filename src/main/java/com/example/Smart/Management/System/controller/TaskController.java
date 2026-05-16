@@ -21,42 +21,51 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    // 🔴 ADMIN ONLY → Create Task
+    // ✅ ADMIN CREATE TASK
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Task create(@RequestBody Task task) {
+
         return taskService.create(task);
     }
 
-    // 🔴 ADMIN ONLY → View all tasks
+    // ✅ ADMIN VIEW ALL
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<Task> getAll() {
+
         return taskService.getAll();
     }
 
-    // 🟢 ADMIN + MEMBER → Update status
+    // ✅ UPDATE STATUS
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER')")
     @PatchMapping("/{id}/status")
     public Task updateStatus(@PathVariable Long id,
                              @RequestParam String status,
                              HttpServletRequest request) {
 
-        String email = (String) request.getAttribute("email");
+        String email =
+                (String) request.getAttribute("email");
 
         if (email == null) {
             throw new RuntimeException("Unauthorized");
         }
 
-        return taskService.updateStatus(id, status, email);
+        return taskService.updateStatus(
+                id,
+                status,
+                email
+        );
     }
 
-    // 🟢 ADMIN + MEMBER → View own tasks
+    // ✅ MY TASKS
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER')")
     @GetMapping("/my")
-    public List<Task> myTasks(HttpServletRequest request) {
+    public List<Task> myTasks(
+            HttpServletRequest request) {
 
-        String email = (String) request.getAttribute("email");
+        String email =
+                (String) request.getAttribute("email");
 
         if (email == null) {
             throw new RuntimeException("Unauthorized");
@@ -65,33 +74,42 @@ public class TaskController {
         return taskService.getByUser(email);
     }
 
-    // 🟢 ADMIN + MEMBER → Overdue tasks
+    // ✅ OVERDUE
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER')")
     @GetMapping("/overdue")
     public List<Task> overdue() {
+
         return taskService.getOverdue();
     }
 
-    // 🔥 DASHBOARD SUMMARY
+    // ✅ SUMMARY
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER')")
     @GetMapping("/summary")
-    public Map<String, Long> summary(HttpServletRequest request) {
+    public Map<String, Long> summary(
+            HttpServletRequest request) {
 
-        String email = (String) request.getAttribute("email");
+        String email =
+                (String) request.getAttribute("email");
 
         if (email == null) {
             throw new RuntimeException("Unauthorized");
         }
 
-        List<Task> tasks = taskService.getByUser(email);
+        List<Task> tasks =
+                taskService.getByUser(email);
 
         long total = tasks.size();
+
         long completed = tasks.stream()
-                .filter(t -> t.getStatus() == TaskStatus.DONE)
+                .filter(task ->
+                        task.getStatus()
+                                == TaskStatus.DONE)
                 .count();
 
         long pending = tasks.stream()
-                .filter(t -> t.getStatus() != TaskStatus.DONE)
+                .filter(task ->
+                        task.getStatus()
+                                != TaskStatus.DONE)
                 .count();
 
         return Map.of(

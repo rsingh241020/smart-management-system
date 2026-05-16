@@ -6,9 +6,11 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Task {
 
     @Id
@@ -17,13 +19,18 @@ public class Task {
 
     private String title;
 
+    private String description;
+
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
-
-    private Long projectId;
-
-    private String assignedTo; // email
+    // assigned member email
+    private String assignedTo;
 
     private LocalDate dueDate;
+
+    // ✅ PROJECT RELATION
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id")
+    private Project project;
 }
